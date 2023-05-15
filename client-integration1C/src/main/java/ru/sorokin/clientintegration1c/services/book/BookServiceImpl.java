@@ -2,29 +2,47 @@ package ru.sorokin.clientintegration1c.services.book;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.sorokin.clientintegration1c.configurations.MapperUtil;
+import ru.sorokin.clientintegration1c.exceptions.BookNotFoundException;
+import ru.sorokin.clientintegration1c.exceptions.NotSaveInRepository;
 import ru.sorokin.clientintegration1c.models.book.Book;
-import ru.sorokin.clientintegration1c.repositorys.book.BoolRepository;
+import ru.sorokin.clientintegration1c.models.book.entitys.BookEntity;
+import ru.sorokin.clientintegration1c.repositorys.book.BookRepository;
+import ru.sorokin.clientintegration1c.services.book.mapper.BookMapper;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookServiceImpl implements BookService {
 
-    private final BoolRepository boolRepository;
+    private final BookRepository bookRepository;
+    private final BookMapper bookMapper;
+    private String bookByIdNotFound = "Книга не найдена по ID ";
+    private String bookNotSave = "Не охранена книга ";
 
     @Override
     public Book findById(Long id) {
-        return null;
+        BookEntity bookEntity = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(String.format(bookByIdNotFound + id)));
+        return bookMapper.toBook(bookEntity);
     }
 
     @Override
     public List<Book> getAllBooks() {
-        return null;
+        List<BookEntity> bookEntities = bookRepository.findAll();
+        return MapperUtil.convertList(bookEntities, this::convertToBook);
     }
 
     @Override
     public void addBook(Book book) {
+        BookEntity entity = bookRepository.save(bookMapper.toBookEntity(book));
+        if (entity.getId() == null) throw new NotSaveInRepository(bookNotSave + book.toString());
+    }
 
+    private Book convertToBook(BookEntity entity) {
+        return bookMapper.toBook(entity);
     }
 }

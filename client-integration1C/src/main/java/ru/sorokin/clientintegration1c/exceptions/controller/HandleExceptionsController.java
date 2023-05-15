@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.sorokin.clientintegration1c.exceptions.BookNotFoundException;
+import ru.sorokin.clientintegration1c.exceptions.NotSaveInRepository;
+import ru.sorokin.clientintegration1c.exceptions.ValidationException;
 import ru.sorokin.clientintegration1c.exceptions.models.ErrorResponse;
 
 import java.util.HashMap;
@@ -14,12 +16,33 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class HandleExceptionsController {
+    private final String titleMessage = "Message: ";
+    private final String titleStackTrace = "StackTrace: ";
 
     @ExceptionHandler(BookNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleBookNotFoundException(final BookNotFoundException e) {
-        return new ErrorResponse(String.format("Message: " + e.getMessage()
-                + "\nStackTrace:" + e.getStackTrace().toString()));
+        return new ErrorResponse(String.format(
+                titleMessage + e.getMessage() + "\n" +
+                        titleStackTrace + e.getStackTrace().toString()
+        ));
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(final ValidationException e) {
+        return new ErrorResponse(String.format(
+                titleMessage + e.getMessage() + "\n" +
+                        titleStackTrace + e.getStackTrace().toString()
+        ));
+    }
+    @ExceptionHandler(NotSaveInRepository.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleNotSaveInRepository(final NotSaveInRepository e) {
+        return new ErrorResponse(String.format(
+                titleMessage + e.getMessage() + "\n" +
+                        titleStackTrace + e.getStackTrace().toString()
+        ));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

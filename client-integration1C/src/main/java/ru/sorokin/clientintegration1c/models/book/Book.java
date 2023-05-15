@@ -6,10 +6,11 @@ import lombok.*;
 @Setter
 @ToString
 @EqualsAndHashCode
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class Book {
-    private final Long id;
-    private final String author;
-    private final String title;
-    private final Double price;
+    private Long id;
+    private String author;
+    private String title;
+    private Double price;
 }
