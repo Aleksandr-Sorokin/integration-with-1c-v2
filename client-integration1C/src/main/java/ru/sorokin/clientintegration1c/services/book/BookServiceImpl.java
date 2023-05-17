@@ -7,9 +7,10 @@ import ru.sorokin.clientintegration1c.configurations.MapperUtil;
 import ru.sorokin.clientintegration1c.exceptions.BookNotFoundException;
 import ru.sorokin.clientintegration1c.exceptions.NotSaveInRepository;
 import ru.sorokin.clientintegration1c.models.book.Book;
+import ru.sorokin.clientintegration1c.models.book.BookRequest;
 import ru.sorokin.clientintegration1c.models.book.entitys.BookEntity;
 import ru.sorokin.clientintegration1c.repositorys.book.BookRepository;
-import ru.sorokin.clientintegration1c.services.book.mapper.BookMapper;
+import ru.sorokin.clientintegration1c.services.book.mapper.BookMapperImpl;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
 public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
-    private final BookMapper bookMapper;
+    private final BookMapperImpl bookMapper;
     private String bookByIdNotFound = "Книга не найдена по ID ";
     private String bookNotSave = "Не охранена книга ";
 
@@ -27,7 +28,7 @@ public class BookServiceImpl implements BookService {
     public Book findById(Long id) {
         BookEntity bookEntity = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(String.format(bookByIdNotFound + id)));
-        return bookMapper.toBook(bookEntity);
+        return bookMapper.toBookTargetState(bookEntity, Book.class);
     }
 
     @Override
@@ -37,12 +38,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void addBook(Book book) {
-        BookEntity entity = bookRepository.save(bookMapper.toBookEntity(book));
+    @Transactional
+    public void addBook(BookRequest bookRequest) {
+        Book book = bookMapper.toBookTargetState(bookRequest, Book.class);
+        BookEntity entity = bookRepository.save(bookMapper.toBookTargetState(book, BookEntity.class));
         if (entity.getId() == null) throw new NotSaveInRepository(bookNotSave + book.toString());
     }
 
     private Book convertToBook(BookEntity entity) {
-        return bookMapper.toBook(entity);
+        return bookMapper.toBookTargetState(entity, Book.class);
     }
 }
