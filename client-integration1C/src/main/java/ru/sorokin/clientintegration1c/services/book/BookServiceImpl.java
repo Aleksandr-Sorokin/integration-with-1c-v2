@@ -34,7 +34,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<Book> getAllBooks() {
         List<BookEntity> bookEntities = bookRepository.findAll();
-        return MapperUtil.convertList(bookEntities, this::convertToBook);
+        return MapperUtil.convertList(bookEntities, bookEntity -> bookMapper.toBookTargetState(bookEntity, Book.class));
     }
 
     @Override
@@ -45,7 +45,9 @@ public class BookServiceImpl implements BookService {
         if (entity.getId() == null) throw new NotSaveInRepository(bookNotSave + book.toString());
     }
 
-    private Book convertToBook(BookEntity entity) {
-        return bookMapper.toBookTargetState(entity, Book.class);
+    @Override
+    public List<Book> findBookByAuthor(String author) {
+        List<BookEntity> bookEntities = bookRepository.findBookEntitiesByAuthorContaining(author);
+        return MapperUtil.convertList(bookEntities, bookEntity -> bookMapper.toBookTargetState(bookEntity, Book.class));
     }
 }

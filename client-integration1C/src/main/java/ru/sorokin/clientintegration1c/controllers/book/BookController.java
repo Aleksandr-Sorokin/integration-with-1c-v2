@@ -7,6 +7,7 @@ import ru.sorokin.clientintegration1c.models.book.Book;
 import ru.sorokin.clientintegration1c.models.book.BookRequest;
 import ru.sorokin.clientintegration1c.services.book.BookService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -15,7 +16,6 @@ import java.util.List;
 public class BookController {
     private final BookService bookService;
     private String emptyVariable = "Пустая, NULL или меньше 1 переменная ";
-    //private String emptyOrBadParam = "Пустой, NULL или неправельный параметр ";
     private String emptyOrNullBodyRequest = "Пустой или NULL тело запроса ";
 
     @GetMapping("/{id}")
@@ -28,8 +28,14 @@ public class BookController {
     }
 
     @GetMapping
-    public List<Book> getAllBooks() {
-        return bookService.getAllBooks();
+    public List<Book> getAllBooks(@RequestParam(required = false) String author) {
+        List<Book> books;
+        if (!author.isEmpty()) {
+            books =  bookService.findBookByAuthor(author);
+        } else {
+            books = bookService.getAllBooks();
+        }
+        return books;
     }
 
     @PostMapping
