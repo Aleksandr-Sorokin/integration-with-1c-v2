@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.sorokin.serverintegration1c.exceptions.BookNotFoundException;
 import ru.sorokin.serverintegration1c.exceptions.NotSaveInRepository;
+import ru.sorokin.serverintegration1c.exceptions.RegistrationException;
 import ru.sorokin.serverintegration1c.exceptions.ValidationException;
 import ru.sorokin.serverintegration1c.exceptions.models.ErrorResponse;
 
+import javax.security.auth.login.LoginException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +38,7 @@ public class HandleExceptionsController {
                         titleStackTrace + e.getStackTrace().toString()
         ));
     }
+
     @ExceptionHandler(NotSaveInRepository.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleNotSaveInRepository(final NotSaveInRepository e) {
@@ -51,5 +54,10 @@ public class HandleExceptionsController {
         Map<String, String> response = new HashMap<>();
         response.put("error", String.format("Unknown %s: %s", e.getName(), e.getValue()));
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({RegistrationException.class, LoginException.class})
+    public ResponseEntity<ErrorResponse> handleUserAuthException(RuntimeException e) {
+        return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
     }
 }
